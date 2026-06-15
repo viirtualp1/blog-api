@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaService } from '../prisma/prisma.service';
 import { TagsService } from '../tags/tags.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
@@ -7,79 +7,59 @@ import type { PaginationParams } from './dto/query-posts.dto';
 
 @Injectable()
 export class PostsService {
-  constructor(private tagsService: TagsService) {}
+  constructor(
+    private tagsService: TagsService,
+    private prisma: PrismaService,
+  ) {}
 
-  posts = new Map<string, CreatePostDto>();
-
-  findAll(pagination: PaginationParams) {
+  async findAll(pagination: PaginationParams) {
     const { page, limit } = pagination;
 
-    const posts = Array.from(this.posts.entries(), ([id, post]) => ({
-      id,
-      ...post,
-    }));
-
-    return posts.slice((page - 1) * limit, page * limit);
+    return await this.prisma.post.findMany({
+      skip: (page - 1) * limit,
+      take: limit,
+    });
   }
 
-  findOne(id: string) {
-    const post = this.posts.get(id);
-    if (!post) {
-      throw new NotFoundException(`Post with id ${id} not found`);
-    }
-
-    return post;
+  async findOne(id: string) {
+    return await this.prisma.post.findUniqueOrThrow({
+      where: { id },
+    });
   }
 
-  create(body: CreatePostDto) {
-    const id = uuidv4();
-
+  async create(body: CreatePostDto) {
     if (body.tagIds && body.tagIds.length > 0) {
-      body.tagIds.forEach((tagId) => {
-        const tag = this.tagsService.findOne(tagId);
-        if (!tag) {
+      for (const tagId of body.tagIds) {
+        try {
+          await this.tagsService.findOne(tagId);
+        } catch {
           throw new NotFoundException(`Tag with id ${tagId} not found`);
         }
-      });
+      }
     }
 
-    this.posts.set(id, body);
-
-    return {
-      id,
-      ...body,
-    };
+    return await this.prisma.post.create({ data: body });
   }
 
-  update(id: string, updatePostDto: UpdatePostDto) {
-    const post = this.posts.get(id);
-    if (!post) {
-      throw new NotFoundException(`Post with id ${id} not found`);
-    }
-
-    if (updatePostDto.tagIds && updatePostDto.tagIds.length > 0) {
-      updatePostDto.tagIds.forEach((tagId) => {
-        const tag = this.tagsService.findOne(tagId);
-        if (!tag) {
+  async update(id: string, body: UpdatePostDto) {
+    if (body.tagIds && body.tagIds.length > 0) {
+      for (const tagId of body.tagIds) {
+        try {
+          await this.tagsService.findOne(tagId);
+        } catch {
           throw new NotFoundException(`Tag with id ${tagId} not found`);
         }
-      });
+      }
     }
 
-    const updatedPost = { ...post, ...updatePostDto };
-    this.posts.set(id, updatedPost);
-
-    return updatedPost;
+    return await this.prisma.post.update({
+      where: { id },
+      data: body,
+    });
   }
 
-  remove(id: string) {
-    const post = this.posts.get(id);
-    if (!post) {
-      throw new NotFoundException(`Post with id ${id} not found`);
-    }
-
-    this.posts.delete(id);
-
+  async remove(id: string) {
+    await this.prisma.post.delete({ where: { id } });
     return { success: true };
   }
 }
