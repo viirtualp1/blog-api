@@ -1,12 +1,6 @@
 import { Request } from 'express';
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-
-export interface PaginationParams {
-  page: number;
-  limit: number;
-  skip: number;
-  take: number;
-}
+import { PaginationParams } from '../../posts/dto/query-posts.dto';
 
 export const Pagination = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): PaginationParams => {

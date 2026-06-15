@@ -11,7 +11,10 @@ import {
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { Pagination, type PaginationParams } from './pagination.decorator';
+import {
+  Pagination,
+  type PaginationParams,
+} from '../common/decorators/pagination.decorator';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('posts')
