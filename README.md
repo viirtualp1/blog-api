@@ -2,7 +2,8 @@
 
 A simple REST API for a blog website
 
-Includes CRUD for posts and tags, DTO validation, a global exception filter, a logging interceptor, and Swagger documentation
+Includes: CRUD for posts and tags, DTO validation, a global exception filter, a logging interceptor, and Swagger documentation
+Database: Prisma+PostgresSQL
 
 ## Tech Stack
 
@@ -10,6 +11,7 @@ Includes CRUD for posts and tags, DTO validation, a global exception filter, a l
 - TypeScript
 - class-validator / class-transformer
 - @nestjs/swagger
+- Prisma (PostgresSQL)
 
 ## Getting Started
 
@@ -65,9 +67,3 @@ Content-Type: application/json
   "path": "/posts/5"
 }
 ```
-
-## Notes
-
-Data is stored in memory for now
-
-A persistent database (PostgreSQL via Prisma/TypeORM) is planned as the next step, along with authentication, Redis caching, and Docker support
