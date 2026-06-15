@@ -8,14 +8,12 @@ import {
   Delete,
   HttpStatus,
 } from '@nestjs/common';
+import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Pagination } from '../common/decorators/pagination.decorator';
 import { PostsService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import {
-  Pagination,
-  type PaginationParams,
-} from '../common/decorators/pagination.decorator';
-import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
+import type { PaginationParams } from './dto/query-posts.dto';
 
 @ApiTags('posts')
 @Controller('posts')

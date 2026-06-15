@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { TagsService } from '../tags/tags.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
-import { PaginationParams } from '../common/decorators/pagination.decorator';
+import type { PaginationParams } from './dto/query-posts.dto';
 
 @Injectable()
 export class PostsService {
