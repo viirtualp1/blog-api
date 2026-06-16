@@ -4,8 +4,6 @@ A modular REST API for a blog platform built with NestJS.
 
 It includes authentication, role-based access control, posts and tags management, validation, global error handling, logging, and Swagger documentation. The project follows a scalable backend architecture with clear separation of concerns.
 
----
-
 ## Tech Stack
 
 - NestJS
@@ -16,8 +14,6 @@ It includes authentication, role-based access control, posts and tags management
 - bcrypt password hashing
 - class-validator / class-transformer
 - @nestjs/swagger
-
----
 
 ## Features
 
@@ -34,8 +30,6 @@ It includes authentication, role-based access control, posts and tags management
 - Protected routes using guards
 - Passport JWT strategy
 
----
-
 ### Blog Features
 
 - CRUD for posts
@@ -43,8 +37,6 @@ It includes authentication, role-based access control, posts and tags management
 - Many-to-many relation between posts and tags
 - Pagination for posts
 - DTO validation for all inputs
-
----
 
 ### Architecture
 
@@ -55,8 +47,6 @@ It includes authentication, role-based access control, posts and tags management
 - DTO-based validation layer
 - Swagger API documentation
 - Clear separation: Controller / Service / DB layer
-
----
 
 ## Getting Started
 
