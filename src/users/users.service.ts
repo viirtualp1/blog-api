@@ -17,4 +17,17 @@ export class UsersService {
       where: { email },
     });
   }
+
+  findById(id: string) {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string | null) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { refreshToken },
+    });
+  }
 }
