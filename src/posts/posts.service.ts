@@ -13,12 +13,18 @@ export class PostsService {
   ) {}
 
   async findAll(pagination: PaginationParams) {
-    const { page, limit } = pagination;
+    const { page, limit, skip, take } = pagination;
 
-    return await this.prisma.post.findMany({
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const [data, total] = await Promise.all([
+      this.prisma.post.findMany({
+        skip,
+        take,
+        orderBy: { id: 'desc' },
+      }),
+      this.prisma.post.count(),
+    ]);
+
+    return { data, total, page, limit };
   }
 
   async findOne(id: string) {

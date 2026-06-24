@@ -29,11 +29,13 @@ export class AuthService {
 
     const passwordHash = await bcrypt.hash(body.password, 10);
 
-    return this.usersService.create({
+    const user = await this.usersService.create({
       email: body.email,
       name: body.name,
       password: passwordHash,
     });
+
+    return user;
   }
 
   private async generateTokens(user: {
@@ -48,12 +50,12 @@ export class AuthService {
     };
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
+      secret: this.configService.getOrThrow('JWT_ACCESS_SECRET'),
       expiresIn: '15m',
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
       expiresIn: '7d',
     });
 
@@ -63,34 +65,44 @@ export class AuthService {
     };
   }
 
-  async refresh(refreshToken: string) {
-    const payload = await this.jwtService.verifyAsync<JwtPayload>(
-      refreshToken,
-      {
-        secret: this.configService.get('JWT_REFRESH_SECRET'),
-      },
-    );
-
-    const user = await this.usersService.findById(payload.sub);
-
-    if (!user || !user.refreshToken) {
+  async refresh(refreshToken: string | undefined) {
+    if (!refreshToken) {
       throw new UnauthorizedException();
     }
 
-    const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+    try {
+      const payload = await this.jwtService.verifyAsync<JwtPayload>(
+        refreshToken,
+        {
+          secret: this.configService.getOrThrow('JWT_REFRESH_SECRET'),
+        },
+      );
 
-    if (!isValid) {
+      const user = await this.usersService.findById(payload.sub);
+      if (!user || !user.refreshToken) {
+        throw new UnauthorizedException();
+      }
+
+      const isValid = await bcrypt.compare(refreshToken, user.refreshToken);
+      if (!isValid) {
+        throw new UnauthorizedException();
+      }
+
+      const tokens = await this.generateTokens(user);
+
+      await this.usersService.updateRefreshToken(
+        user.id,
+        await bcrypt.hash(tokens.refreshToken, 10),
+      );
+
+      return tokens;
+    } catch (error) {
+      if (error instanceof UnauthorizedException) {
+        throw error;
+      }
+
       throw new UnauthorizedException();
     }
-
-    const tokens = await this.generateTokens(user);
-
-    await this.usersService.updateRefreshToken(
-      user.id,
-      await bcrypt.hash(tokens.refreshToken, 10),
-    );
-
-    return tokens;
   }
 
   async login(body: LoginDto) {

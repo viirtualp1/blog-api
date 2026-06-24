@@ -1,10 +1,11 @@
-import { Controller, Post, Body, Req, Res } from '@nestjs/common';
-import { Request, Response } from 'express';
+import { Controller, Post, Body, Req, Res, UseGuards } from '@nestjs/common';
+import { Response } from 'express';
 import { RefreshRequest } from './interfaces/refresh-request.interface';
 import { AuthenticatedRequest } from './interfaces/authenticated-request.interface';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -16,8 +17,22 @@ export class AuthController {
   }
 
   @Post('refresh')
-  refresh(@Req() req: RefreshRequest) {
-    return this.authService.refresh(req.cookies.refreshToken);
+  async refresh(
+    @Req() req: RefreshRequest,
+    @Res({ passthrough: true }) res: Response,
+  ) {
+    const result = await this.authService.refresh(req.cookies.refreshToken);
+
+    res.cookie('refreshToken', result.refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    return {
+      accessToken: result.accessToken,
+    };
   }
 
   @Post('login')
@@ -30,7 +45,7 @@ export class AuthController {
 
     res.cookie('refreshToken', result.refreshToken, {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
@@ -40,6 +55,8 @@ export class AuthController {
     };
   }
 
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
   logout(
     @Req()
     req: AuthenticatedRequest,
